@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Tinkoff Lab</string>
+    <string name="exception">NullPoineterException</string>
+    <string name="next">Next</string>
+</resources>
