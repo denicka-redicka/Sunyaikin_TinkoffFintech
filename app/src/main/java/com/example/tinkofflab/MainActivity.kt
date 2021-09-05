@@ -3,17 +3,16 @@ package com.example.tinkofflab
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.NetworkInfo
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.bumptech.glide.Glide
+import org.json.JSONException
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -24,12 +23,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveCache(
         url: String,
-        descriptoin: String,
+        description: String,
         urlCache: Stack<String>,
         descrCache: Stack<String>,
     ) {
         urlCache.push(url)
-        descrCache.push(descriptoin)
+        descrCache.push(description)
     }
 
     private fun cleanCache(urlCache: Stack<String>, descrCache: Stack<String>) {
@@ -41,86 +40,92 @@ class MainActivity : AppCompatActivity() {
     private lateinit var imageOne: ImageView
     lateinit var nextButton: Button
     lateinit var reloadButton: Button
-    lateinit var progressBar: ProgressBar
     lateinit var descriptionView: TextView
     val gifCache = Stack<String>()
     val gifCacheReverce = Stack<String>()
     val gifDescriptionCache = Stack<String>()
     val gifDescriptionCacheReverce = Stack<String>()
-    var gifUrl = ""
+    var resultUrl = ""
     var gifDescription = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         descriptionView = findViewById(R.id.description)
-        nextButton = findViewById(R.id.nextButton)
-        progressBar = findViewById(R.id.progress_bar)
+
         imageOne = findViewById(R.id.image_one)
         if (isNetworkAvailable(this)) {
             GetURLData().execute(androidDevelopersAPI)
         } else showCustomDialog()
-        reloadButton = findViewById(R.id.reloadButton)
+
+        nextButton = findViewById(R.id.nextButton)
         nextButton.setOnClickListener {
-            when (gifCacheReverce.size) {
-                0 -> {
-                    if (isNetworkAvailable(this)) {
-                        saveCache(gifUrl, gifDescription, gifCache, gifDescriptionCache)
-                        GetURLData().execute(androidDevelopersAPI)
-                    } else showCustomDialog()
-                }
-                1 -> {
-                    if (isNetworkAvailable(this)) {
-                        saveCache(gifCacheReverce.lastElement(),
-                            gifDescriptionCacheReverce.lastElement(),
-                            gifCache,
-                            gifDescriptionCache)
-                        cleanCache(gifCacheReverce, gifDescriptionCacheReverce)
-                        GetURLData().execute(androidDevelopersAPI)
-                    } else showCustomDialog()
-                }
-                else -> {
-                    saveCache(gifCacheReverce.lastElement(),
-                        gifDescriptionCacheReverce.lastElement(),
-                        gifCache,
-                        gifDescriptionCache)
-
-                    cleanCache(gifCacheReverce, gifDescriptionCacheReverce)
-
-                    Glide.with(imageOne)
-                        .load(gifCacheReverce.lastElement())
-                        .into(imageOne)
-                    descriptionView.text = gifDescriptionCacheReverce.lastElement()
-                }
-            }
-            if (gifCache.size > 0) reloadButton.visibility = View.VISIBLE
+            listenerNextButton()
         }
-        reloadButton.setOnClickListener() {
-            if (gifCacheReverce.size == 0) saveCache(gifUrl,
-                gifDescription,
-                gifCacheReverce,
-                gifDescriptionCacheReverce)
-            saveCache(gifCache.lastElement(),
-                gifDescriptionCache.lastElement(),
-                gifCacheReverce,
-                gifDescriptionCacheReverce)
-            Glide.with(imageOne)
-                .load(gifCache.lastElement())
-                .into(imageOne)
-            descriptionView.text = gifDescriptionCache.lastElement()
-            cleanCache(gifCache, gifDescriptionCache)
 
-            if (gifCache.size == 0) reloadButton.visibility = View.GONE
+        reloadButton = findViewById(R.id.reloadButton)
+        reloadButton.setOnClickListener() {
+            listenerReloadButton()
         }
 
 
     }
 
-    private inner class GetURLData : AsyncTask<String, Void, String>() {
+    private fun listenerNextButton() {
+        when (gifCacheReverce.size) {
+            0 -> {
+                if (isNetworkAvailable(this)) {
+                    saveCache(resultUrl, gifDescription, gifCache, gifDescriptionCache)
+                    GetURLData().execute(androidDevelopersAPI)
+                } else showCustomDialog()
+            }
+            1 -> {
+                if (isNetworkAvailable(this)) {
+                    saveCache(gifCacheReverce.lastElement(),
+                        gifDescriptionCacheReverce.lastElement(),
+                        gifCache,
+                        gifDescriptionCache)
+                    cleanCache(gifCacheReverce, gifDescriptionCacheReverce)
+                    GetURLData().execute(androidDevelopersAPI)
+                } else showCustomDialog()
+            }
+            else -> {
+                saveCache(gifCacheReverce.lastElement(),
+                    gifDescriptionCacheReverce.lastElement(),
+                    gifCache,
+                    gifDescriptionCache)
 
-        override fun onPreExecute() {
-            progressBar.visibility = View.VISIBLE
+                cleanCache(gifCacheReverce, gifDescriptionCacheReverce)
+
+                Glide.with(imageOne)
+                    .load(gifCacheReverce.lastElement())
+                    .into(imageOne)
+                descriptionView.text = gifDescriptionCacheReverce.lastElement()
+            }
         }
+        if (gifCache.size > 0) reloadButton.visibility = View.VISIBLE
+    }
+
+    private fun listenerReloadButton() {
+        if (gifCacheReverce.size == 0) saveCache(resultUrl,
+            gifDescription,
+            gifCacheReverce,
+            gifDescriptionCacheReverce)
+        saveCache(gifCache.lastElement(),
+            gifDescriptionCache.lastElement(),
+            gifCacheReverce,
+            gifDescriptionCacheReverce)
+        Glide.with(imageOne)
+            .load(gifCache.lastElement())
+            .into(imageOne)
+        descriptionView.text = gifDescriptionCache.lastElement()
+        cleanCache(gifCache, gifDescriptionCache)
+
+        if (gifCache.size == 0) reloadButton.visibility = View.GONE
+    }
+
+
+    private inner class GetURLData : AsyncTask<String, Void, String>() {
 
         override fun doInBackground(vararg params: String?): String {
             val connection: HttpURLConnection
@@ -142,24 +147,32 @@ class MainActivity : AppCompatActivity() {
 
         override fun onPostExecute(result: String?) {
             val jsonObject = JSONObject(result)
-            if (jsonObject.getString("gifURL").contains("https://"))
-                gifUrl = (jsonObject.getString("gifURL"))
-            else gifUrl = (jsonObject.getString("gifURL").replace("http://", "https://"))
+            resultUrl = try {
+                (jsonObject.getString("gifURL"))
+            } catch (e: JSONException) {
+                (jsonObject.getString("previewURL"))
+            }
+            if (!resultUrl.contains("https://"))
+                resultUrl.replace("http://", "https://")
             Glide.with(imageOne)
-                .load(gifUrl)
+                .load(resultUrl)
                 .into(imageOne)
             gifDescription = (jsonObject.getString("description"))
             descriptionView.text = gifDescription
-            progressBar.visibility = View.INVISIBLE
         }
     }
 
-    private fun isNetworkAvailable(context: Context): Boolean {
+    override fun onDestroy() {
+        super.onDestroy()
+        Glide.get(this).clearMemory()
+    }
+
+    private fun isNetworkAvailable(context: Context): Boolean { // TODO вынести в класс NetworkUtils
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        var activeNetworkInfo: NetworkInfo? = null
-        activeNetworkInfo = cm.activeNetworkInfo
+        var activeNetworkInfo = cm.activeNetworkInfo
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting
     }
+
 
     private fun showCustomDialog() {
         val dialog = AlertDialog.Builder(this)
