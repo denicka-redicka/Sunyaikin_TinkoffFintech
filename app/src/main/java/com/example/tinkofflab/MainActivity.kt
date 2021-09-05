@@ -21,58 +21,95 @@ import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
+
+    private fun saveCache(
+        url: String,
+        descriptoin: String,
+        urlCache: Stack<String>,
+        descrCache: Stack<String>,
+    ) {
+        urlCache.push(url)
+        descrCache.push(descriptoin)
+    }
+
+    private fun cleanCache(urlCache: Stack<String>, descrCache: Stack<String>) {
+        urlCache.pop()
+        descrCache.pop()
+    }
+
     private val androidDevelopersAPI = "https://developerslife.ru/random?json=true"
     private lateinit var imageOne: ImageView
     lateinit var nextButton: Button
     lateinit var reloadButton: Button
     lateinit var progressBar: ProgressBar
+    lateinit var descriptionView: TextView
     val gifCache = Stack<String>()
     val gifCacheReverce = Stack<String>()
+    val gifDescriptionCache = Stack<String>()
+    val gifDescriptionCacheReverce = Stack<String>()
     var gifUrl = ""
-
+    var gifDescription = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        descriptionView = findViewById(R.id.description)
         nextButton = findViewById(R.id.nextButton)
         progressBar = findViewById(R.id.progress_bar)
         imageOne = findViewById(R.id.image_one)
         if (isNetworkAvailable(this)) {
             GetURLData().execute(androidDevelopersAPI)
-        }else showCustomDialog()
+        } else showCustomDialog()
         reloadButton = findViewById(R.id.reloadButton)
         nextButton.setOnClickListener {
             when (gifCacheReverce.size) {
                 0 -> {
                     if (isNetworkAvailable(this)) {
-                        gifCache.push(gifUrl)
+                        saveCache(gifUrl, gifDescription, gifCache, gifDescriptionCache)
                         GetURLData().execute(androidDevelopersAPI)
-                    }else showCustomDialog()
+                    } else showCustomDialog()
                 }
                 1 -> {
                     if (isNetworkAvailable(this)) {
-                        gifCache.push(gifCacheReverce.lastElement())
-                        gifCacheReverce.pop()
+                        saveCache(gifCacheReverce.lastElement(),
+                            gifDescriptionCacheReverce.lastElement(),
+                            gifCache,
+                            gifDescriptionCache)
+                        cleanCache(gifCacheReverce, gifDescriptionCacheReverce)
                         GetURLData().execute(androidDevelopersAPI)
-                    }else showCustomDialog()
+                    } else showCustomDialog()
                 }
                 else -> {
-                    gifCache.push(gifCacheReverce.lastElement())
-                    gifCacheReverce.pop()
+                    saveCache(gifCacheReverce.lastElement(),
+                        gifDescriptionCacheReverce.lastElement(),
+                        gifCache,
+                        gifDescriptionCache)
+
+                    cleanCache(gifCacheReverce, gifDescriptionCacheReverce)
+
                     Glide.with(imageOne)
                         .load(gifCacheReverce.lastElement())
                         .into(imageOne)
+                    descriptionView.text = gifDescriptionCacheReverce.lastElement()
                 }
             }
             if (gifCache.size > 0) reloadButton.visibility = View.VISIBLE
         }
         reloadButton.setOnClickListener() {
-            if (gifCacheReverce.size == 0) gifCacheReverce.push(gifUrl)
-            gifCacheReverce.push(gifCache.lastElement())
+            if (gifCacheReverce.size == 0) saveCache(gifUrl,
+                gifDescription,
+                gifCacheReverce,
+                gifDescriptionCacheReverce)
+            saveCache(gifCache.lastElement(),
+                gifDescriptionCache.lastElement(),
+                gifCacheReverce,
+                gifDescriptionCacheReverce)
             Glide.with(imageOne)
                 .load(gifCache.lastElement())
                 .into(imageOne)
-            gifCache.pop()
+            descriptionView.text = gifDescriptionCache.lastElement()
+            cleanCache(gifCache, gifDescriptionCache)
+
             if (gifCache.size == 0) reloadButton.visibility = View.GONE
         }
 
@@ -111,6 +148,8 @@ class MainActivity : AppCompatActivity() {
             Glide.with(imageOne)
                 .load(gifUrl)
                 .into(imageOne)
+            gifDescription = (jsonObject.getString("description"))
+            descriptionView.text = gifDescription
             progressBar.visibility = View.INVISIBLE
         }
     }
@@ -121,7 +160,8 @@ class MainActivity : AppCompatActivity() {
         activeNetworkInfo = cm.activeNetworkInfo
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting
     }
-    private fun showCustomDialog(){
+
+    private fun showCustomDialog() {
         val dialog = AlertDialog.Builder(this)
         dialog.setMessage("Нет интернет-подключения").show()
     }
