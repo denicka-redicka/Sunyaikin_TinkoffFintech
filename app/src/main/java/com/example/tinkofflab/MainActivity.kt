@@ -1,6 +1,9 @@
 package com.example.tinkofflab
 
-import android.annotation.SuppressLint
+
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -9,6 +12,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import com.bumptech.glide.Glide
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -26,25 +30,31 @@ class MainActivity : AppCompatActivity() {
     val gifCacheReverce = Stack<String>()
     var gifUrl = ""
 
-    @SuppressLint("SetTextI18n")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         nextButton = findViewById(R.id.nextButton)
         progressBar = findViewById(R.id.progress_bar)
         imageOne = findViewById(R.id.image_one)
-        GetURLData().execute(androidDevelopersAPI)
+        if (isNetworkAvailable(this)) {
+            GetURLData().execute(androidDevelopersAPI)
+        }else showCustomDialog()
         reloadButton = findViewById(R.id.reloadButton)
         nextButton.setOnClickListener {
             when (gifCacheReverce.size) {
                 0 -> {
-                    gifCache.push(gifUrl)
-                    GetURLData().execute(androidDevelopersAPI)
+                    if (isNetworkAvailable(this)) {
+                        gifCache.push(gifUrl)
+                        GetURLData().execute(androidDevelopersAPI)
+                    }else showCustomDialog()
                 }
                 1 -> {
-                    gifCache.push(gifCacheReverce.lastElement())
-                    gifCacheReverce.pop()
-                    GetURLData().execute(androidDevelopersAPI)
+                    if (isNetworkAvailable(this)) {
+                        gifCache.push(gifCacheReverce.lastElement())
+                        gifCacheReverce.pop()
+                        GetURLData().execute(androidDevelopersAPI)
+                    }else showCustomDialog()
                 }
                 else -> {
                     gifCache.push(gifCacheReverce.lastElement())
@@ -103,5 +113,16 @@ class MainActivity : AppCompatActivity() {
                 .into(imageOne)
             progressBar.visibility = View.INVISIBLE
         }
+    }
+
+    private fun isNetworkAvailable(context: Context): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        var activeNetworkInfo: NetworkInfo? = null
+        activeNetworkInfo = cm.activeNetworkInfo
+        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting
+    }
+    private fun showCustomDialog(){
+        val dialog = AlertDialog.Builder(this)
+        dialog.setMessage("Нет интернет-подключения").show()
     }
 }
