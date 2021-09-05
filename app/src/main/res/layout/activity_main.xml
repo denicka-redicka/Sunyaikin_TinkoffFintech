@@ -10,18 +10,18 @@
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@+id/image_one"
+        app:layout_constraintEnd_toEndOf="@+id/image_one"
+        app:layout_constraintStart_toStartOf="@+id/image_one"
+        app:layout_constraintTop_toTopOf="@+id/image_one" />
 
     <ImageView
         android:id="@+id/image_one"
         android:layout_width="0dp"
-        android:layout_height="450dp"
+        android:layout_height="420dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:contentDescription="Gif"
+        android:contentDescription="@string/gif"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -32,7 +32,7 @@
     <TextView
         android:id="@+id/description"
         android:layout_width="0dp"
-        android:layout_height="17dp"
+        android:layout_height="40dp"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
         android:text=""
@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="40dp"
         android:background="@drawable/roundebotton"
-        android:text="reload"
+        android:text="@string/reload"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/nextButton"

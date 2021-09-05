@@ -135,17 +135,18 @@ class MainActivity : AppCompatActivity() {
             val stream = connection.inputStream
             val scanner = Scanner(stream)
 
-            var stringTojson = ""
+            val stringBuilder = StringBuilder()
             while (scanner.hasNext())
-                stringTojson += scanner.next() + " "
+                stringBuilder.append(scanner.next()).append(" ")
+
 
             connection.disconnect()
             scanner.close()
 
-            return stringTojson
+            return stringBuilder.toString()
         }
 
-        override fun onPostExecute(result: String?) {
+        override fun onPostExecute(result: String) {
             val jsonObject = JSONObject(result)
             resultUrl = try {
                 (jsonObject.getString("gifURL"))
@@ -153,7 +154,8 @@ class MainActivity : AppCompatActivity() {
                 (jsonObject.getString("previewURL"))
             }
             if (!resultUrl.contains("https://"))
-                resultUrl.replace("http://", "https://")
+                resultUrl = resultUrl.replace("http://", "https://")
+
             Glide.with(imageOne)
                 .load(resultUrl)
                 .into(imageOne)
@@ -164,18 +166,18 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Glide.get(this).clearMemory()
+        Glide.get(this).clearDiskCache()
     }
 
-    private fun isNetworkAvailable(context: Context): Boolean { // TODO вынести в класс NetworkUtils
+    private fun isNetworkAvailable(context: Context): Boolean {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        var activeNetworkInfo = cm.activeNetworkInfo
+        val activeNetworkInfo = cm.activeNetworkInfo
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting
     }
 
 
     private fun showCustomDialog() {
         val dialog = AlertDialog.Builder(this)
-        dialog.setMessage("Нет интернет-подключения").show()
+        dialog.setMessage(R.string.internet_error).show()
     }
 }

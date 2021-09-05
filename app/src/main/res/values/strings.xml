@@ -2,4 +2,7 @@
     <string name="app_name">Tinkoff Lab</string>
     <string name="exception">NullPoineterException</string>
     <string name="next">Next</string>
+    <string name="gif">Gif</string>
+    <string name="reload">reload</string>
+    <string name="internet_error">Нет интернет-подключения</string>
 </resources>
