@@ -41,10 +41,10 @@ class MainActivity : AppCompatActivity() {
     lateinit var nextButton: Button
     lateinit var reloadButton: Button
     lateinit var descriptionView: TextView
-    val gifCache = Stack<String>()
-    val gifCacheReverce = Stack<String>()
-    val gifDescriptionCache = Stack<String>()
-    val gifDescriptionCacheReverce = Stack<String>()
+    private val gifCache = Stack<String>()
+    private val gifCacheReverse = Stack<String>()
+    private val gifDescriptionCache = Stack<String>()
+    private val gifDescriptionCacheReverse = Stack<String>()
     var resultUrl = ""
     var gifDescription = ""
 
@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun listenerNextButton() {
-        when (gifCacheReverce.size) {
+        when (gifCacheReverse.size) {
             0 -> {
                 if (isNetworkAvailable(this)) {
                     saveCache(resultUrl, gifDescription, gifCache, gifDescriptionCache)
@@ -81,40 +81,48 @@ class MainActivity : AppCompatActivity() {
             }
             1 -> {
                 if (isNetworkAvailable(this)) {
-                    saveCache(gifCacheReverce.lastElement(),
-                        gifDescriptionCacheReverce.lastElement(),
+                    saveCache(
+                        gifCacheReverse.lastElement(),
+                        gifDescriptionCacheReverse.lastElement(),
                         gifCache,
-                        gifDescriptionCache)
-                    cleanCache(gifCacheReverce, gifDescriptionCacheReverce)
+                        gifDescriptionCache
+                    )
+                    cleanCache(gifCacheReverse, gifDescriptionCacheReverse)
                     GetURLData().execute(androidDevelopersAPI)
                 } else showCustomDialog()
             }
             else -> {
-                saveCache(gifCacheReverce.lastElement(),
-                    gifDescriptionCacheReverce.lastElement(),
+                saveCache(
+                    gifCacheReverse.lastElement(),
+                    gifDescriptionCacheReverse.lastElement(),
                     gifCache,
-                    gifDescriptionCache)
+                    gifDescriptionCache
+                )
 
-                cleanCache(gifCacheReverce, gifDescriptionCacheReverce)
+                cleanCache(gifCacheReverse, gifDescriptionCacheReverse)
 
                 Glide.with(imageOne)
-                    .load(gifCacheReverce.lastElement())
+                    .load(gifCacheReverse.lastElement())
                     .into(imageOne)
-                descriptionView.text = gifDescriptionCacheReverce.lastElement()
+                descriptionView.text = gifDescriptionCacheReverse.lastElement()
             }
         }
         if (gifCache.size > 0) reloadButton.visibility = View.VISIBLE
     }
 
     private fun listenerReloadButton() {
-        if (gifCacheReverce.size == 0) saveCache(resultUrl,
+        if (gifCacheReverse.size == 0) saveCache(
+            resultUrl,
             gifDescription,
-            gifCacheReverce,
-            gifDescriptionCacheReverce)
-        saveCache(gifCache.lastElement(),
+            gifCacheReverse,
+            gifDescriptionCacheReverse
+        )
+        saveCache(
+            gifCache.lastElement(),
             gifDescriptionCache.lastElement(),
-            gifCacheReverce,
-            gifDescriptionCacheReverce)
+            gifCacheReverse,
+            gifDescriptionCacheReverse
+        )
         Glide.with(imageOne)
             .load(gifCache.lastElement())
             .into(imageOne)
